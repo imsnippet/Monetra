@@ -1,5 +1,7 @@
 import cors from "cors";
 
+import { Env } from "../../config/env.config";
+
 /**
  * Voice-specific CORS layer, ported verbatim from `routes/voice.route.ts`.
  *
