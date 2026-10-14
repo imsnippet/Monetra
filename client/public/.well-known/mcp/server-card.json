@@ -1,0 +1,35 @@
+{
+  "serverInfo": {
+    "name": "VoiceyBill API",
+    "version": "1.0.0",
+    "description": "Personal financial platform API — track income and expenses with voice input, AI receipt scanning, analytics, and scheduled reports."
+  },
+  "transport": {
+    "type": "https",
+    "endpoint": "https://voiceybill-server.vercel.app/api"
+  },
+  "capabilities": {
+    "transactions": {
+      "description": "Create, read, update, delete financial transactions"
+    },
+    "analytics": {
+      "description": "Financial analytics and spending insights"
+    },
+    "reports": {
+      "description": "Generate and schedule financial reports"
+    },
+    "voice": {
+      "description": "Voice-based transaction input"
+    },
+    "receipts": {
+      "description": "AI-powered receipt scanning and categorization"
+    },
+    "budgets": {
+      "description": "Budget management and tracking"
+    }
+  },
+  "authentication": {
+    "type": "bearer",
+    "tokenUrl": "https://voiceybill-server.vercel.app/api/auth/login"
+  }
+}

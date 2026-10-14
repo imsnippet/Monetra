@@ -1,0 +1,41 @@
+# robots.txt for voiceybill.com
+# https://www.rfc-editor.org/rfc/rfc9309
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+
+User-agent: CCBot
+Disallow: /
+
+# Content Signals (https://contentsignals.org/)
+Content-Signal: ai-train=no, search=yes, ai-input=yes
+
+# Sitemap
+Sitemap: https://voiceybill.com/sitemap.xml

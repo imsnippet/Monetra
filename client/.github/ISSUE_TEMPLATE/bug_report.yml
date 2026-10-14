@@ -1,0 +1,113 @@
+name: Bug report
+description: Report a reproducible bug with diagnostics
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Complete this form so maintainers can triage quickly.
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How much does this affect users?
+      options:
+        - S1 - Critical (service down, data loss, security risk)
+        - S2 - High (major functionality broken)
+        - S3 - Medium (workaround exists)
+        - S4 - Low (minor issue)
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug summary
+      description: What happened and why is it a bug?
+      placeholder: A clear and concise summary of the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide deterministic reproduction steps.
+      placeholder: |
+        1. Open page ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: frequency
+    attributes:
+      label: Frequency
+      description: How often does this happen?
+      placeholder: Always, intermittently, only in production, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Include OS, Node version, package manager, browser, and deployment target.
+      placeholder: Windows 11, Node 20.14, npm 10, Chrome 124, Vercel preview
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected area
+      description: Which pages, components, or workflows are impacted?
+      placeholder: Dashboard, DateRangePicker, transaction table
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs, stack traces, and screenshots
+      description: Paste complete errors from browser console, network, or build output. Attach screenshots or screen recordings directly in GitHub or paste links here.
+      placeholder: |
+        - Browser console output
+        - Network error details
+        - Screenshot or video link
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Images or videos
+      description: If the bug is visual, include images or screen recordings.
+      placeholder: Link to a screenshot, GIF, or short recording.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I included enough details to reproduce this issue.
+          required: true
+        - label: I removed secrets, tokens, and private data from logs.
+          required: true

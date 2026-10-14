@@ -1,0 +1,25 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://voiceybill-server.vercel.app/api",
+      "service-desc": [
+        {
+          "href": "https://voiceybill.com/.well-known/openapi.yaml",
+          "type": "application/openapi+yaml"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://github.com/voiceyBill/voiceyBill-server#readme",
+          "type": "text/html"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://voiceybill-server.vercel.app/health",
+          "type": "application/json"
+        }
+      ]
+    }
+  ]
+}

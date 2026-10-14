@@ -1,0 +1,30 @@
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+
+# ─── Build ────────────────────────────────────────────────────────────────────
+dist/
+build/
+*.tsbuildinfo
+
+# ─── Environment ──────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── OS / Editor ──────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ─── Local notes ──────────────────────────────────────────────────────────────
+# Migration working notes, kept on the author's machine rather than in the repo.
+docs/postgres-migration.md
+.dev-data.json
+

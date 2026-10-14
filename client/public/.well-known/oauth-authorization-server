@@ -1,0 +1,28 @@
+{
+  "issuer": "https://voiceybill.com",
+  "authorization_endpoint": "https://voiceybill.com/sign-in",
+  "token_endpoint": "https://voiceybill-server.vercel.app/api/auth/login",
+  "registration_endpoint": "https://voiceybill-server.vercel.app/api/auth/register",
+  "jwks_uri": "https://voiceybill-server.vercel.app/.well-known/jwks.json",
+  "grant_types_supported": ["password"],
+  "response_types_supported": ["token"],
+  "token_endpoint_auth_methods_supported": ["client_secret_post"],
+  "scopes_supported": [
+    "transactions:read",
+    "transactions:write",
+    "analytics:read",
+    "reports:read",
+    "reports:write",
+    "budgets:read",
+    "budgets:write"
+  ],
+  "service_documentation": "https://voiceybill.com/auth.md",
+  "ui_locales_supported": ["en"],
+  "agent_auth": {
+    "skill": "https://isitagentready.com/.well-known/agent-skills/auth-md/SKILL.md",
+    "register_uri": "https://voiceybill-server.vercel.app/api/auth/register",
+    "supported_identity_types": ["verified_email"],
+    "supported_credential_types": ["jwt_bearer"],
+    "documentation": "https://voiceybill.com/auth.md"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://agentskills.io/schemas/index.json",
+  "publisher": {
+    "name": "VoiceyBill",
+    "url": "https://voiceybill.com"
+  },
+  "skills": [
+    {
+      "name": "transaction-management",
+      "type": "api",
+      "description": "Create, read, update, and delete financial transactions with voice input and AI receipt scanning",
+      "url": "https://voiceybill.com/.well-known/agent-skills/transaction-management/SKILL.md",
+      "sha256": ""
+    },
+    {
+      "name": "financial-analytics",
+      "type": "api",
+      "description": "Query spending analytics, category breakdowns, and financial trends",
+      "url": "https://voiceybill.com/.well-known/agent-skills/financial-analytics/SKILL.md",
+      "sha256": ""
+    },
+    {
+      "name": "budget-tracking",
+      "type": "api",
+      "description": "Set and monitor budgets by category with spending alerts",
+      "url": "https://voiceybill.com/.well-known/agent-skills/budget-tracking/SKILL.md",
+      "sha256": ""
+    },
+    {
+      "name": "report-generation",
+      "type": "api",
+      "description": "Generate and schedule financial reports via email",
+      "url": "https://voiceybill.com/.well-known/agent-skills/report-generation/SKILL.md",
+      "sha256": ""
+    }
+  ]
+}

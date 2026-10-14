@@ -1,0 +1,15 @@
+{
+  "resource": "https://voiceybill-server.vercel.app/api",
+  "authorization_servers": ["https://voiceybill.com"],
+  "bearer_methods_supported": ["header"],
+  "scopes_supported": [
+    "transactions:read",
+    "transactions:write",
+    "analytics:read",
+    "reports:read",
+    "reports:write",
+    "budgets:read",
+    "budgets:write"
+  ],
+  "resource_documentation": "https://voiceybill.com/auth.md"
+}
