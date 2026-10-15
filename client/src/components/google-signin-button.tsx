@@ -13,6 +13,7 @@ export const GoogleSignInButton = ({
   onSuccess,
   onError,
   isLoading = false,
+  className = "",
 }: GoogleSignInButtonProps) => {
   const clientId =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ||
