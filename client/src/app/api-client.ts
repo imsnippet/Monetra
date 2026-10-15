@@ -3,7 +3,8 @@ import type { RootState } from "./store";
 import { logout } from "@/features/auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL,
+  baseUrl:
+    import.meta.env.VITE_API_URL || "https://monetra-api.vercel.app/api",
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const auth = (getState() as RootState).auth;

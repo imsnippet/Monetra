@@ -13,9 +13,10 @@ export const GoogleSignInButton = ({
   onSuccess,
   onError,
   isLoading = false,
-  className = "",
 }: GoogleSignInButtonProps) => {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const clientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "609451882433-j6a1p9npdbb2q829o9k3bvba9ljrfike.apps.googleusercontent.com";
 
   const handleGoogleSuccess = (credentialResponse: CredentialResponse) => {
     if (credentialResponse?.credential) {
