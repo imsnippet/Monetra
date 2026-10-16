@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useTypedSelector } from "@/app/hook";
 
 const stats = [
   { value: "50+", label: "Languages" },
@@ -9,9 +8,6 @@ const stats = [
 ];
 
 const CtaSection = () => {
-  const { user, accessToken } = useTypedSelector((state) => state.auth);
-  const isAuthenticated = !!(user && accessToken);
-
   return (
     <section className="py-32 bg-background overflow-hidden">
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -26,29 +22,12 @@ const CtaSection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          {isAuthenticated ? (
-            <Link
-              to="/overview"
-              className="w-full sm:w-auto inline-flex items-center justify-center bg-primary text-primary-foreground font-bold text-lg px-12 py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-xl"
-            >
-              Go to Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/sign-up"
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-primary text-primary-foreground font-bold text-lg px-12 py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-xl"
-              >
-                Create free account
-              </Link>
-              <Link
-                to="/sign-in"
-                className="w-full sm:w-auto inline-flex items-center justify-center bg-muted text-foreground font-bold text-lg px-12 py-5 rounded-2xl hover:bg-muted/80 transition-all"
-              >
-                Sign in
-              </Link>
-            </>
-          )}
+          <Link
+            to="/overview"
+            className="w-full sm:w-auto inline-flex items-center justify-center bg-primary text-primary-foreground font-bold text-lg px-12 py-5 rounded-2xl hover:bg-primary/90 transition-all shadow-xl"
+          >
+            Open App
+          </Link>
         </div>
 
         <div className="mt-16 pt-16 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-8">

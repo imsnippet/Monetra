@@ -53,6 +53,18 @@ export class AuthController {
     };
   }
 
+  @Post("guest")
+  @HttpCode(HTTPSTATUS.OK)
+  async guestLogin(@Body() rawBody: Record<string, unknown>) {
+    const guestId = typeof rawBody?.guestId === "string" ? rawBody.guestId : undefined;
+    const result = await this.authService.guestLogin(guestId);
+
+    return {
+      message: "Guest session initialized",
+      ...result,
+    };
+  }
+
   @Post("google")
   @HttpCode(HTTPSTATUS.OK)
   async googleAuth(@Body() rawBody: unknown) {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Target,
   Plus,
@@ -53,51 +53,8 @@ interface SavingsGoal {
   }[];
 }
 
-const INITIAL_GOALS: SavingsGoal[] = [
-  {
-    id: "goal-1",
-    name: "Emergency Fund",
-    category: "Safety Net",
-    targetAmount: 10000,
-    currentAmount: 6450,
-    targetDate: "2026-12-31",
-    monthlyTarget: 500,
-    notes: "6 months of living expenses reserve for financial security and unforeseen emergencies. Maintained in high-yield liquid account.",
-    contributions: [
-      { id: "c1", date: "2026-09-15", amount: 500, note: "Monthly allocation from payroll" },
-      { id: "c2", date: "2026-10-01", amount: 450, note: "Freelance bonus direct deposit" },
-      { id: "c3", date: "2026-10-10", amount: 300, note: "Rollover savings from dining budget" },
-    ],
-  },
-  {
-    id: "goal-2",
-    name: "Travel & Vacation",
-    category: "Leisure",
-    targetAmount: 3500,
-    currentAmount: 2200,
-    targetDate: "2026-08-15",
-    monthlyTarget: 300,
-    notes: "Summer Europe tour tickets, accommodations, intercity rail pass, and guided cultural excursions.",
-    contributions: [
-      { id: "c4", date: "2026-09-20", amount: 300, note: "Bi-weekly travel reserve transfer" },
-      { id: "c5", date: "2026-10-05", amount: 250, note: "Card cash-back bonus redemption" },
-    ],
-  },
-  {
-    id: "goal-3",
-    name: "Tech & Workstation Upgrade",
-    category: "Productivity",
-    targetAmount: 2400,
-    currentAmount: 1800,
-    targetDate: "2026-11-30",
-    monthlyTarget: 300,
-    notes: "New high-performance display, ergonomic seating, and M4 studio workstation setup for software development.",
-    contributions: [
-      { id: "c6", date: "2026-10-05", amount: 400, note: "Hardware budget quarterly rollover" },
-      { id: "c7", date: "2026-10-12", amount: 200, note: "Sale of old monitor display" },
-    ],
-  },
-];
+const INITIAL_GOALS: SavingsGoal[] = [];
+
 
 export const GoalsPage: React.FC = () => {
   const [goals, setGoals] = useState<SavingsGoal[]>(() => {
@@ -123,7 +80,16 @@ export const GoalsPage: React.FC = () => {
   const [contributionNote, setContributionNote] = useState("");
 
   const user = useTypedSelector((state) => state.auth.user);
-  const userCurrency = (user as any)?.currency || "USD";
+  const userCurrency = (user as any)?.baseCurrency || (user as any)?.currency || "USD";
+
+  // Listen for reset events from Account Settings
+  useEffect(() => {
+    const handleReset = () => {
+      setGoals([]);
+    };
+    window.addEventListener("monetra_data_reset", handleReset);
+    return () => window.removeEventListener("monetra_data_reset", handleReset);
+  }, []);
 
   const saveGoals = (newGoals: SavingsGoal[]) => {
     setGoals(newGoals);

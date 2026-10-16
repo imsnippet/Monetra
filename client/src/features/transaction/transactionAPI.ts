@@ -190,30 +190,24 @@ export const transactionApi = apiClient.injectEndpoints({
       },
       invalidatesTags: ["transactions", "analytics", "budget"],
     }),
-    // exportTransactions: builder.query<
-    //   Blob,
-    //   {
-    //     keyword?: string;
-    //     type?: string;
-    //     recurringStatus?: string;
-    //     from?: string;
-    //     to?: string;
-    //     format?: "csv" | "pdf";
-    //   }
-    // >({
-    //   query: (params) => ({
-    //     url: "/transaction/export",
-    //     method: "GET",
-    //     params,
-    //     responseHandler: (res) => res.blob(),
-    //   }),
-    // }),
+
+    resetAllTransactions: builder.mutation<
+      { success: boolean; deletedCount: number },
+      void
+    >({
+      query: () => ({
+        url: "/transaction/reset-all",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["transactions", "analytics", "budget"],
+    }),
   }),
 });
 
 export const {
   useCreateTransactionMutation,
   useGetAllTransactionsQuery,
+  useLazyGetAllTransactionsQuery,
   useAiScanReceiptMutation,
   useProcessVoiceTransactionMutation,
   useGetSingleTransactionQuery,
@@ -222,5 +216,7 @@ export const {
   useBulkImportTransactionMutation,
   useDeleteTransactionMutation,
   useBulkDeleteTransactionMutation,
+  useResetAllTransactionsMutation,
   // useLazyExportTransactionsQuery,
 } = transactionApi;
+

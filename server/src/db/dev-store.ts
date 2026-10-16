@@ -619,7 +619,9 @@ export const devTransactionRepo = {
 
   async removeMany(filter: any): Promise<number> {
     const before = memoryData.transactions.length;
-    if (filter?.ids && Array.isArray(filter.ids)) {
+    if (filter?.userId) {
+      memoryData.transactions = memoryData.transactions.filter((t) => t.userId !== filter.userId);
+    } else if (filter?.ids && Array.isArray(filter.ids)) {
       const idSet = new Set(filter.ids);
       memoryData.transactions = memoryData.transactions.filter((t) => !idSet.has(t._id) && !idSet.has(t.id));
     }
@@ -870,4 +872,15 @@ export const devBudgetRepo = {
       updatedAt: new Date(removed.updatedAt),
     };
   },
+
+  async removeManyByUser(userId: string): Promise<{ count: number }> {
+    if (!(memoryData as any).budgets) return { count: 0 };
+    const budgets: any[] = (memoryData as any).budgets;
+    const initialLen = budgets.length;
+    (memoryData as any).budgets = budgets.filter((item: any) => item.userId !== userId);
+    const count = initialLen - (memoryData as any).budgets.length;
+    if (count > 0) persistToDisk();
+    return { count };
+  },
 };
+

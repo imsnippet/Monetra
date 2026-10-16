@@ -32,7 +32,9 @@ export const PROTECTED_ROUTES = {
   ANALYTICS: "/analytics",
   SETTINGS: "/settings",
   SETTINGS_APPEARANCE: "/settings/appearance",
+  SETTINGS_BACKUP: "/settings/backup",
   SETTINGS_BILLING: "/settings/billing",
   SETTINGS_SECURITY: "/settings/security",
   SETTINGS_CATEGORIES: "/settings/categories",
 };
+

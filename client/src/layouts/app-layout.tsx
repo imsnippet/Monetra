@@ -33,7 +33,9 @@ const AppLayoutInner = () => {
         />
         <main className="w-full flex-1 flex flex-col">
           <Suspense fallback={<PageFallback />}>
-            <Outlet />
+            <div className="w-full flex-1 flex flex-col animate-page-enter">
+              <Outlet />
+            </div>
           </Suspense>
         </main>
       </div>

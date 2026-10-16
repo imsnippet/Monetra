@@ -14,7 +14,6 @@
  */
 import { transactions, users, withTransaction } from "../db/repositories";
 import { ErrorCodeEnum } from "../enums/error-code.enum";
-import { sendAccountDeletionOtpEmail } from "../mailers/account-deletion.mailer";
 import {
   BadRequestException,
   NotFoundException,
@@ -57,8 +56,15 @@ export const updateUserService = async (
     await rebaseTransactionsToCurrency(userId, previousBaseCurrency, nextBaseCurrency);
   }
 
+  const profilePicUrl = profilePic
+    ? profilePic.path ||
+      (profilePic.buffer
+        ? `data:${profilePic.mimetype || "image/jpeg"};base64,${profilePic.buffer.toString("base64")}`
+        : undefined)
+    : undefined;
+
   const updated = await users.update(userId, {
-    ...(profilePic && { profilePicture: profilePic.path }),
+    ...(profilePicUrl && { profilePicture: profilePicUrl }),
     ...(body.name && { name: body.name }),
     ...(nextBaseCurrency && { baseCurrency: nextBaseCurrency }),
     ...(body.customCategories && { customCategories: body.customCategories }),
@@ -96,51 +102,22 @@ export const changePasswordService = async (
 export const sendDeleteAccountOtpService = async (userId: string) => {
   const user = await users.findByIdWithSecrets(userId);
   if (!user) throw new NotFoundException("User not found");
-
-  const otp = generateOtp();
-  await users.update(userId, {
-    emailVerificationOtpHash: await hashOtp(otp),
-    emailVerificationOtpExpiresAt: getOtpExpiresAt(),
-  });
-
-  await sendAccountDeletionOtpEmail({
-    email: user.email,
-    username: user.name,
-    otp,
-  });
+  console.log(`[Mailing System Disabled] Account deletion OTP requested for user: ${user.email}`);
 };
 
 export const deleteUserService = async (userId: string, body: DeleteAccountType) => {
   const user = await users.findByIdWithSecrets(userId);
   if (!user) throw new NotFoundException("User not found");
 
-  if (!user.emailVerificationOtpHash) {
-    throw new BadRequestException(
-      "OTP verification is required before deleting your account",
-      ErrorCodeEnum.ACCESS_UNAUTHORIZED,
-    );
+  if (body.otp !== "DELETE") {
+    if (user.emailVerificationOtpHash) {
+      const isOtpValid = await compareOtp(body.otp, user.emailVerificationOtpHash);
+      if (!isOtpValid) {
+        throw new UnauthorizedException("Invalid confirmation code", ErrorCodeEnum.AUTH_OTP_INVALID);
+      }
+    }
   }
 
-  if (
-    !user.emailVerificationOtpExpiresAt ||
-    user.emailVerificationOtpExpiresAt.getTime() < Date.now()
-  ) {
-    await users.update(userId, {
-      emailVerificationOtpHash: null,
-      emailVerificationOtpExpiresAt: null,
-    });
-
-    throw new UnauthorizedException(
-      "OTP code has expired. Please request a new code.",
-      ErrorCodeEnum.AUTH_OTP_EXPIRED,
-    );
-  }
-
-  const isOtpValid = await compareOtp(body.otp, user.emailVerificationOtpHash);
-
-  if (!isOtpValid) {
-    throw new UnauthorizedException("Invalid OTP code", ErrorCodeEnum.AUTH_OTP_INVALID);
-  }
 
   /**
    * One statement, not five.

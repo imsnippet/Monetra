@@ -1,12 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useTypedSelector } from "@/app/hook";
 import { useEffect, useRef } from "react";
 
 const HeroSection = () => {
-  const { user, accessToken } = useTypedSelector((state) => state.auth);
-  const isAuthenticated = !!(user && accessToken);
-
   // References for direct DOM hardware-accelerated manipulation (zero component re-renders on scroll)
   const cardRef = useRef<HTMLDivElement>(null);
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -120,21 +116,12 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            {isAuthenticated ? (
-              <Link
-                to="/overview"
-                className="w-full sm:w-auto bg-brand-green-light text-brand-green font-bold text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-2xl hover:brightness-90 transition-all shadow-lg flex items-center justify-center gap-2"
-              >
-                Go to Dashboard <ArrowRight className="w-5 h-5" />
-              </Link>
-            ) : (
-              <Link
-                to="/sign-up"
-                className="w-full sm:w-auto bg-brand-green-light text-brand-green font-bold text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-2xl hover:brightness-90 transition-all shadow-lg flex items-center justify-center gap-2"
-              >
-                Start tracking free <ArrowRight className="w-5 h-5" />
-              </Link>
-            )}
+            <Link
+              to="/overview"
+              className="w-full sm:w-auto bg-brand-green-light text-brand-green font-bold text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-2xl hover:brightness-90 transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              Open App <ArrowRight className="w-5 h-5" />
+            </Link>
           </div>
         </div>
 

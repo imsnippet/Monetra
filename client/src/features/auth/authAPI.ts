@@ -28,6 +28,13 @@ export const authApi = apiClient.injectEndpoints({
         body: credentials,
       }),
     }),
+    guestLogin: builder.mutation<LoginResponse & { guestId?: string }, { guestId?: string }>({
+      query: (body) => ({
+        url: "/auth/guest",
+        method: "POST",
+        body,
+      }),
+    }),
     verifyOtp: builder.mutation<VerifyOtpResponse, VerifyOtpRequest>({
       query: (body) => ({
         url: "/auth/verify-otp",
@@ -84,6 +91,7 @@ export const authApi = apiClient.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useGuestLoginMutation,
   useRegisterMutation,
   useVerifyOtpMutation,
   useResendOtpMutation,

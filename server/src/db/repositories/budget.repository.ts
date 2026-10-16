@@ -150,3 +150,21 @@ export const remove = async (
     .returning();
   return row ? toBudgetApi(row) : null;
 };
+
+export const removeManyByUser = async (
+  userId: string,
+  exec?: Executor,
+): Promise<{ count: number }> => {
+  if (isDevFallbackMode()) {
+    return devBudgetRepo.removeManyByUser(userId);
+  }
+  const owner = validId(userId);
+  if (!owner) return { count: 0 };
+
+  const rows = await executor(exec)
+    .delete(budgets)
+    .where(eq(budgets.userId, owner))
+    .returning({ id: budgets.id });
+  return { count: rows.length };
+};
+

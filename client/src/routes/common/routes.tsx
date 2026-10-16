@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { Navigate } from "react-router-dom";
 import { AUTH_ROUTES, PROTECTED_ROUTES, PUBLIC_ROUTES } from "./routePath";
 
 // Route pages are code-split for performance
@@ -21,9 +22,11 @@ const Recurring = lazy(() => import("@/pages/recurring"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Account = lazy(() => import("@/pages/settings/account"));
 const Appearance = lazy(() => import("@/pages/settings/appearance"));
+const Backup = lazy(() => import("@/pages/settings/backup"));
 const Billing = lazy(() => import("@/pages/settings/billing"));
-const Security = lazy(() => import("@/pages/settings/security"));
 const Categories = lazy(() => import("@/pages/settings/categories"));
+
+
 
 export const publicRoutePaths = [
   { path: PUBLIC_ROUTES.HOME, element: <Home /> },
@@ -56,9 +59,12 @@ export const protectedRoutePaths = [
       { index: true, element: <Account /> },
       { path: PROTECTED_ROUTES.SETTINGS, element: <Account /> },
       { path: PROTECTED_ROUTES.SETTINGS_APPEARANCE, element: <Appearance /> },
+      { path: PROTECTED_ROUTES.SETTINGS_BACKUP, element: <Backup /> },
       { path: PROTECTED_ROUTES.SETTINGS_BILLING, element: <Billing /> },
-      { path: PROTECTED_ROUTES.SETTINGS_SECURITY, element: <Security /> },
+
+      { path: PROTECTED_ROUTES.SETTINGS_SECURITY, element: <Navigate to={PROTECTED_ROUTES.SETTINGS} replace /> },
       { path: PROTECTED_ROUTES.SETTINGS_CATEGORIES, element: <Categories /> },
     ],
   },
 ];
+

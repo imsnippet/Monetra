@@ -8,6 +8,7 @@ import {
   resendOtpService,
   resetPasswordService,
   verifyOtpService,
+  guestLoginService,
 } from "../../services/auth.service";
 import { googleAuthService } from "../../services/google-auth.service";
 
@@ -50,5 +51,9 @@ export class AuthService {
 
   googleAuth(body: Parameters<typeof googleAuthService>[0]) {
     return googleAuthService(body);
+  }
+
+  guestLogin(guestId?: string) {
+    return guestLoginService(guestId);
   }
 }

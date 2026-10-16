@@ -15,9 +15,12 @@ const Settings = () => {
   const sidebarNavItems = [
     { title: "Account", href: PROTECTED_ROUTES.SETTINGS },
     { title: "Appearance", href: PROTECTED_ROUTES.SETTINGS_APPEARANCE },
-    { title: "Security", href: PROTECTED_ROUTES.SETTINGS_SECURITY },
+    { title: "Data & Backup", href: PROTECTED_ROUTES.SETTINGS_BACKUP },
+    // { title: "Security", href: PROTECTED_ROUTES.SETTINGS_SECURITY },
     // { title: "Billings", href: PROTECTED_ROUTES.SETTINGS_BILLING },
   ];
+
+
   return (
     <PageLayout
       title="Settings"

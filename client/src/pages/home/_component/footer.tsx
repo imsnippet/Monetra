@@ -30,8 +30,7 @@ const developerLinks = [
 ];
 
 const legalLinks = [
-  { label: "Sign In", href: "/sign-in" },
-  { label: "Sign Up", href: "/sign-up" },
+  { label: "Open App", href: "/overview" },
   { label: "About & Tech Stack", href: "/about" },
 ];
 

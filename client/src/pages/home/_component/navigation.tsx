@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useTypedSelector } from "@/app/hook";
 import { useTheme } from "@/context/theme-provider";
 import { useState, useEffect } from "react";
 import { Sun, Moon } from "lucide-react";
@@ -13,8 +12,6 @@ interface HomeNavigationProps {
 }
 
 const Navigation = ({ scrollToSection, scrollToTop }: HomeNavigationProps) => {
-  const { user, accessToken } = useTypedSelector((state) => state.auth);
-  const isAuthenticated = !!(user && accessToken);
   const { theme, setTheme } = useTheme();
 
   const [isVisible, setIsVisible] = useState(true);
@@ -86,33 +83,13 @@ const Navigation = ({ scrollToSection, scrollToTop }: HomeNavigationProps) => {
             {theme === "dark" ? <Sun className="h-4 w-4 text-primary" /> : <Moon className="h-4 w-4 text-primary" />}
           </Button>
 
-          {isAuthenticated ? (
-            <Button
-              size="sm"
-              asChild
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5 text-sm font-semibold shadow-md transition-all"
-            >
-              <Link to="/overview">Dashboard</Link>
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="hidden sm:inline-flex text-sm font-semibold px-4 py-2 hover:bg-muted/60 rounded-full transition-all"
-              >
-                <Link to="/sign-in">Sign in</Link>
-              </Button>
-              <Button
-                size="sm"
-                asChild
-                className="bg-primary text-primary-foreground text-sm font-semibold px-5 py-2 rounded-full hover:bg-primary/90 transition-all shadow-md"
-              >
-                <Link to="/sign-up">Get started</Link>
-              </Button>
-            </>
-          )}
+          <Button
+            size="sm"
+            asChild
+            className="bg-primary text-primary-foreground text-sm font-semibold px-5 py-2 rounded-full hover:bg-primary/90 transition-all shadow-md"
+          >
+            <Link to="/overview">Open App</Link>
+          </Button>
         </div>
 
       </div>

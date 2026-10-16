@@ -10,6 +10,7 @@ import {
   getTransactionByIdService,
   scanReceiptService,
   updateTransactionService,
+  resetAllTransactionsService,
 } from "../../services/transaction.service";
 
 /** Injectable seam over the existing `services/transaction.service` functions. */
@@ -79,4 +80,9 @@ export class TransactionService {
   ) {
     return scanReceiptService(file, categories);
   }
+
+  resetAll(userId: Parameters<typeof resetAllTransactionsService>[0]) {
+    return resetAllTransactionsService(userId);
+  }
 }
+

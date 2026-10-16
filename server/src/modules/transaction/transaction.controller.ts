@@ -236,4 +236,19 @@ export class TransactionController {
       ...result,
     };
   }
+
+  @Delete("reset-all")
+  @HttpCode(HTTPSTATUS.OK)
+  async resetAllTransactions(
+    @CurrentUser() currentUser: Express.User | undefined,
+  ) {
+    const userId = currentUser?._id;
+    const result = await this.transactionService.resetAll(userId);
+
+    return {
+      message: "All transactions and data reset successfully",
+      ...result,
+    };
+  }
 }
+

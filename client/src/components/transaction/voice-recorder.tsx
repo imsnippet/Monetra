@@ -27,6 +27,8 @@ const VoiceRecorder = ({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [hasProcessedVoice, setHasProcessedVoice] = useState(false);
 
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,9 +65,41 @@ const VoiceRecorder = ({
         stream.getTracks().forEach((track) => track.stop());
       };
 
+      // Native Free Web Speech Recognition (Chrome, Edge, Safari, Android)
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = "en-US";
+
+          recognition.onresult = (event: any) => {
+            let transcriptText = "";
+            for (let i = 0; i < event.results.length; i++) {
+              transcriptText += event.results[i][0].transcript + " ";
+            }
+            setLiveTranscript(transcriptText.trim());
+          };
+
+          recognition.onerror = () => {
+            // Ignore benign speech recognition errors
+          };
+
+          recognition.start();
+          recognitionRef.current = recognition;
+        } catch (recErr) {
+          console.warn("Native Speech Recognition unavailable:", recErr);
+        }
+      }
+
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingDuration(0);
+      setLiveTranscript("");
 
       intervalRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
@@ -77,6 +111,15 @@ const VoiceRecorder = ({
   };
 
   const stopRecording = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {
+        // ignore
+      }
+      recognitionRef.current = null;
+    }
+
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -116,6 +159,9 @@ const VoiceRecorder = ({
 
     const formData = new FormData();
     formData.append("file", audioBlob, "recording.webm");
+    if (liveTranscript.trim()) {
+      formData.append("text", liveTranscript.trim());
+    }
 
     startProgress(10);
     onLoadingChange(true);

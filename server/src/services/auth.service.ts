@@ -466,3 +466,37 @@ export const refreshTokenService = async (refreshToken: string) => {
     reportSetting,
   };
 };
+
+export const guestLoginService = async (guestId?: string) => {
+  const effectiveId = guestId && guestId.trim() ? guestId.trim() : `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const guestEmail = `${effectiveId}@guest.monetra.app`;
+
+  let user = await users.findByEmailWithSecrets(guestEmail);
+
+  if (!user) {
+    user = await users.create({
+      name: "Guest User",
+      email: guestEmail,
+      isVerified: true,
+      provider: "local",
+      baseCurrency: "USD",
+    });
+  }
+
+  const { token, expiresAt } = signJwtToken({ userId: user._id });
+  const refreshToken = signRefreshToken({
+    userId: user._id,
+    tokenVersion: user.tokenVersion ?? 0,
+  });
+
+  const reportSetting = await createDefaultReportSetting(user._id);
+
+  return {
+    user: stripSecrets(user),
+    accessToken: token,
+    refreshToken,
+    expiresAt,
+    reportSetting,
+    guestId: effectiveId,
+  };
+};

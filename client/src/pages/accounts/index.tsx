@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Landmark,
   Plus,
@@ -13,12 +13,17 @@ import {
   Sliders,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
 } from "lucide-react";
 import PageLayout from "@/components/page-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import SmoothTextSlider from "@/components/ui/smooth-text-slider";
+import {
+  useGetSupportedCurrenciesQuery,
+  useGetExchangeRateQuery,
+} from "@/features/currency/currencyAPI";
 import {
   Dialog,
   DialogContent,
@@ -151,11 +156,21 @@ export const AccountsPage: React.FC = () => {
 
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  const user = useTypedSelector((state) => state.auth.user);
+  const baseCurrency = (user as any)?.baseCurrency || (user as any)?.currency || "USD";
+
+  const { data: currencyData } = useGetSupportedCurrenciesQuery();
+  const { data: rateData, refetch: refetchRate } = useGetExchangeRateQuery(
+    { from: "USD", to: baseCurrency },
+    { skip: baseCurrency === "USD" }
+  );
+  const usdToBaseRate = baseCurrency === "USD" ? 1.0 : (rateData?.data?.rate ?? 1.0);
+
   // New Account state
   const [name, setName] = useState("");
   const [type, setType] = useState<AccountItem["type"]>("CHECKING");
   const [initialBalance, setInitialBalance] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(baseCurrency);
   const [notes, setNotes] = useState("");
 
   // Transfer state
@@ -164,8 +179,136 @@ export const AccountsPage: React.FC = () => {
   const [transferAmount, setTransferAmount] = useState("");
   const [transferNote, setTransferNote] = useState("");
 
-  const user = useTypedSelector((state) => state.auth.user);
-  const baseCurrency = (user as any)?.currency || "USD";
+  const convertAmount = (amount: number, fromCurrency: string, toCurrency: string) => {
+    if (!amount || isNaN(amount)) return 0;
+    if (fromCurrency === toCurrency) return amount;
+    if (fromCurrency === "USD" && toCurrency === baseCurrency) {
+      return amount * usdToBaseRate;
+    }
+    if (fromCurrency === baseCurrency && toCurrency === "USD" && usdToBaseRate > 0) {
+      return amount / usdToBaseRate;
+    }
+    return amount;
+  };
+
+  const getAccountInBase = (acc: AccountItem) => {
+    return convertAmount(acc.balance, acc.currency, baseCurrency);
+  };
+
+  const currencyOptions = useMemo(() => {
+    const list =
+      currencyData?.currencies && currencyData.currencies.length > 0
+        ? currencyData.currencies
+        : [
+            { code: "USD", name: "US Dollar", symbol: "$" },
+            { code: "EUR", name: "Euro", symbol: "€" },
+            { code: "GBP", name: "British Pound", symbol: "£" },
+            { code: "INR", name: "Indian Rupee", symbol: "₹" },
+            { code: "CAD", name: "Canadian Dollar", symbol: "CA$" },
+            { code: "AUD", name: "Australian Dollar", symbol: "A$" },
+            { code: "JPY", name: "Japanese Yen", symbol: "¥" },
+            { code: "PKR", name: "Pakistani Rupee", symbol: "Rs" },
+            { code: "AED", name: "UAE Dirham", symbol: "د.إ" },
+          ];
+    return list.map((c) => ({
+      value: c.code,
+      label: `${c.symbol.replace(/₨/g, "Rs")} ${c.code} - ${c.name}`,
+    }));
+  }, [currencyData]);
+
+  // Listen for reset events from Account Settings
+  useEffect(() => {
+    const handleReset = () => {
+      setAccounts([]);
+      setTransfers([]);
+    };
+    window.addEventListener("monetra_data_reset", handleReset);
+    return () => window.removeEventListener("monetra_data_reset", handleReset);
+  }, []);
+
+  // Auto-sync accounts to user baseCurrency when changed
+  useEffect(() => {
+    if (!baseCurrency) return;
+    setAccounts((prev) => {
+      const needsSync = prev.some((a) => a.currency !== baseCurrency);
+      if (needsSync) {
+        const synced = prev.map((a) => ({
+          ...a,
+          currency: baseCurrency,
+          balance: Number(convertAmount(a.balance, a.currency, baseCurrency).toFixed(2)),
+        }));
+        localStorage.setItem("monetra_accounts", JSON.stringify(synced));
+        return synced;
+      }
+      return prev;
+    });
+  }, [baseCurrency, usdToBaseRate]);
+
+  const handleSyncAccountsToBaseCurrency = () => {
+    refetchRate();
+    const updated = accounts.map((acc) => ({
+      ...acc,
+      balance: Number(convertAmount(acc.balance, acc.currency, baseCurrency).toFixed(2)),
+      currency: baseCurrency,
+    }));
+    saveAccounts(updated);
+    toast.success(`Accounts synced to ${baseCurrency}! (Rate: 1 USD = ${usdToBaseRate} ${baseCurrency})`);
+  };
+
+  const handleSyncSingleAccount = (id: string) => {
+    const updated = accounts.map((acc) => {
+      if (acc.id !== id) return acc;
+      return {
+        ...acc,
+        balance: Number(convertAmount(acc.balance, acc.currency, baseCurrency).toFixed(2)),
+        currency: baseCurrency,
+      };
+    });
+    saveAccounts(updated);
+    toast.success(`Account synced to ${baseCurrency}!`);
+  };
+
+  const handleRestoreStarterAccounts = () => {
+    const starter = [
+      {
+        id: "acc-1",
+        name: "Primary Checking",
+        type: "CHECKING" as const,
+        balance: 5420.50,
+        currency: baseCurrency,
+        accountNumberMasked: "••• 4821",
+        notes: "Main operational liquid account used for daily payroll income, automatic bill debits, debit transactions, and operational household cash flow.",
+      },
+      {
+        id: "acc-2",
+        name: "High-Yield Savings",
+        type: "SAVINGS" as const,
+        balance: 14850.00,
+        currency: baseCurrency,
+        accountNumberMasked: "••• 9102",
+        notes: "Emergency fund reserve earning 4.85% APY compounding monthly. Maintained strictly for long-term reserves and large milestone down payments.",
+      },
+      {
+        id: "acc-3",
+        name: "Physical Cash & Pocket",
+        type: "CASH" as const,
+        balance: 380.00,
+        currency: baseCurrency,
+        notes: "Physical cash reserve kept for local farmer markets, physical tips, travel emergency currency, and offline petty cash expenses.",
+      },
+      {
+        id: "acc-4",
+        name: "Travel Credit Card",
+        type: "CREDIT" as const,
+        balance: -840.25,
+        currency: baseCurrency,
+        accountNumberMasked: "••• 1044",
+        notes: "30-day revolving credit line with 3x reward miles on travel & restaurants. Auto-paid in full from checking each cycle.",
+      },
+    ];
+    saveAccounts(starter);
+    toast.success(`Starter bank accounts generated in ${baseCurrency}!`);
+  };
 
   const saveAccounts = (newAccs: AccountItem[]) => {
     setAccounts(newAccs);
@@ -269,7 +412,7 @@ export const AccountsPage: React.FC = () => {
     setTransferNote("");
   };
 
-  const netLiquidWorth = accounts.reduce((acc, a) => acc + a.balance, 0);
+  const netLiquidWorth = accounts.reduce((acc, a) => acc + getAccountInBase(a), 0);
 
   const getAccountIcon = (t: AccountItem["type"]) => {
     switch (t) {
@@ -284,10 +427,10 @@ export const AccountsPage: React.FC = () => {
     }
   };
 
-  const checkingTotal = accounts.filter((a) => a.type === "CHECKING").reduce((s, a) => s + a.balance, 0);
-  const savingsTotal = accounts.filter((a) => a.type === "SAVINGS").reduce((s, a) => s + a.balance, 0);
-  const creditTotal = accounts.filter((a) => a.type === "CREDIT").reduce((s, a) => s + a.balance, 0);
-  const cashTotal = accounts.filter((a) => a.type === "CASH").reduce((s, a) => s + a.balance, 0);
+  const checkingTotal = accounts.filter((a) => a.type === "CHECKING").reduce((s, a) => s + getAccountInBase(a), 0);
+  const savingsTotal = accounts.filter((a) => a.type === "SAVINGS").reduce((s, a) => s + getAccountInBase(a), 0);
+  const creditTotal = accounts.filter((a) => a.type === "CREDIT").reduce((s, a) => s + getAccountInBase(a), 0);
+  const cashTotal = accounts.filter((a) => a.type === "CASH").reduce((s, a) => s + getAccountInBase(a), 0);
 
   return (
     <PageLayout
@@ -296,6 +439,16 @@ export const AccountsPage: React.FC = () => {
       addMarginTop
       rightAction={
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncAccountsToBaseCurrency}
+            className="rounded-lg shadow-sm font-semibold h-9 text-xs sm:text-sm px-3 border-border/70 text-foreground hover:bg-muted gap-1.5"
+            title={`Sync and convert bank account balances to ${baseCurrency}`}
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Sync</span> {baseCurrency}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -439,7 +592,32 @@ export const AccountsPage: React.FC = () => {
             </div>
           </div>
 
-          {viewMode === "slider" ? (
+          {accounts.length === 0 ? (
+            <Card className="border border-dashed border-border/70 bg-card/50 rounded-2xl p-10 text-center max-w-lg mx-auto my-6 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5">
+                <Landmark className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">No bank accounts registered</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
+                Connect your personal checking, high-yield savings, cash reserves, and credit lines to track your consolidated liquid net worth.
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <Button
+                  onClick={() => setIsAddOpen(true)}
+                  className="rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Bank Account
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleRestoreStarterAccounts}
+                  className="rounded-xl text-xs font-semibold border-border/70 text-foreground hover:bg-muted gap-1.5"
+                >
+                  Load Starter Accounts ({baseCurrency})
+                </Button>
+              </div>
+            </Card>
+          ) : viewMode === "slider" ? (
             /* ── Interactive Horizontal Card Slider ── */
             <div className="relative group">
               {/* Smooth Left & Right Fade Masks for Smooth Ends */}
@@ -476,18 +654,37 @@ export const AccountsPage: React.FC = () => {
                             </CardDescription>
                           </div>
                         </div>
-                        <Badge variant="secondary" className="text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                        <Badge
+                          variant={acc.currency === baseCurrency ? "secondary" : "outline"}
+                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                            acc.currency !== baseCurrency ? "border-amber-500/40 text-amber-500 bg-amber-500/10" : ""
+                          }`}
+                        >
                           {acc.currency}
                         </Badge>
                       </CardHeader>
 
                       <CardContent className="p-5 pt-1 space-y-3.5">
                         <div className="p-3.5 bg-muted/30 rounded-xl border border-border/40 space-y-1">
-                          <div className="flex justify-between items-baseline">
+                          <div className="flex justify-between items-baseline gap-2">
                             <span className="text-xs text-muted-foreground font-medium">Available Balance</span>
-                            <span className={`text-xl sm:text-2xl font-extrabold tracking-tight ${acc.balance < 0 ? "text-rose-500" : "text-foreground"}`}>
-                              {formatCurrency(acc.balance, acc.currency)}
-                            </span>
+                            <div className="text-right">
+                              <span className={`text-xl sm:text-2xl font-extrabold tracking-tight ${acc.balance < 0 ? "text-rose-500" : "text-foreground"}`}>
+                                {formatCurrency(getAccountInBase(acc), baseCurrency)}
+                              </span>
+                              {acc.currency !== baseCurrency && (
+                                <div className="text-[10px] text-muted-foreground flex items-center justify-end gap-1.5 mt-0.5">
+                                  <span>Orig: {formatCurrency(acc.balance, acc.currency)}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSyncSingleAccount(acc.id)}
+                                    className="text-primary font-semibold hover:underline"
+                                  >
+                                    Sync to {baseCurrency}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* Long note with smooth toggle expander slider */}
@@ -569,18 +766,37 @@ export const AccountsPage: React.FC = () => {
                           </CardDescription>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                      <Badge
+                        variant={acc.currency === baseCurrency ? "secondary" : "outline"}
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
+                          acc.currency !== baseCurrency ? "border-amber-500/40 text-amber-500 bg-amber-500/10" : ""
+                        }`}
+                      >
                         {acc.currency}
                       </Badge>
                     </CardHeader>
 
                     <CardContent className="p-5 pt-1 space-y-3.5">
                       <div className="p-3.5 bg-muted/30 rounded-xl border border-border/40 space-y-1">
-                        <div className="flex justify-between items-baseline">
+                        <div className="flex justify-between items-baseline gap-2">
                           <span className="text-xs text-muted-foreground font-medium">Available Balance</span>
-                          <span className={`text-xl sm:text-2xl font-extrabold tracking-tight ${acc.balance < 0 ? "text-rose-500" : "text-foreground"}`}>
-                            {formatCurrency(acc.balance, acc.currency)}
-                          </span>
+                          <div className="text-right">
+                            <span className={`text-xl sm:text-2xl font-extrabold tracking-tight ${acc.balance < 0 ? "text-rose-500" : "text-foreground"}`}>
+                              {formatCurrency(getAccountInBase(acc), baseCurrency)}
+                            </span>
+                            {acc.currency !== baseCurrency && (
+                              <div className="text-[10px] text-muted-foreground flex items-center justify-end gap-1.5 mt-0.5">
+                                <span>Orig: {formatCurrency(acc.balance, acc.currency)}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSyncSingleAccount(acc.id)}
+                                  className="text-primary font-semibold hover:underline"
+                                >
+                                  Sync to {baseCurrency}
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {acc.notes && (
@@ -760,15 +976,14 @@ export const AccountsPage: React.FC = () => {
                 <Label htmlFor="acc-currency" className="text-xs font-semibold">Currency</Label>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger id="acc-currency" className="rounded-lg text-xs">
-                    <SelectValue />
+                    <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="CAD">CAD ($)</SelectItem>
-                    <SelectItem value="AUD">AUD ($)</SelectItem>
-                    <SelectItem value="PKR">PKR (Rs)</SelectItem>
+                  <SelectContent className="max-h-60">
+                    {currencyOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

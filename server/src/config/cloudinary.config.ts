@@ -21,12 +21,20 @@ const STORAGE_PARAMS = {
   quality: "auto:good" as const,
 };
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: (req, file) => ({
-    ...STORAGE_PARAMS,
-  }),
-});
+const hasCloudinary = Boolean(
+  Env.CLOUDINARY_CLOUD_NAME &&
+  Env.CLOUDINARY_API_KEY &&
+  Env.CLOUDINARY_API_SECRET,
+);
+
+const storage = hasCloudinary
+  ? new CloudinaryStorage({
+      cloudinary,
+      params: () => ({
+        ...STORAGE_PARAMS,
+      }),
+    })
+  : multer.memoryStorage();
 
 export const upload = multer({
   storage,

@@ -3,6 +3,7 @@ import os from "os";
 import path from "path";
 
 import {
+  Body,
   Controller,
   HttpCode,
   Inject,
@@ -40,28 +41,31 @@ export class VoiceController {
   @HttpCode(HTTPSTATUS.OK)
   async processVoiceTransaction(
     @UploadedFile() file: Express.Multer.File | undefined,
+    @Body() body: Record<string, any> | undefined,
     @CurrentUser() currentUser: Express.User | undefined,
   ) {
-    if (!file) {
-      throw new AppError("No audio file provided", 400);
+    const directTranscript =
+      typeof body?.text === "string" && body.text.trim()
+        ? body.text.trim()
+        : typeof body?.transcript === "string" && body.transcript.trim()
+          ? body.transcript.trim()
+          : "";
+
+    if (!file && !directTranscript) {
+      throw new AppError("No audio file or transcript provided", 400);
     }
 
     // Write buffer to OS temp directory to ensure writable path on serverless platforms
     const tmpDir = os.tmpdir();
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || ".webm";
+    const ext = file?.originalname ? path.extname(file.originalname) || ".webm" : ".webm";
     const tmpFilename = `voice-${uniqueSuffix}${ext}`;
     const tmpFilePath = path.join(tmpDir, tmpFilename);
 
     try {
-      fs.writeFileSync(tmpFilePath, file.buffer);
-
-      // Validate audio file
-      if (!this.voiceService.validateAudioFile(tmpFilePath)) {
-        throw new AppError("Invalid audio file format or size", 400);
+      if (file?.buffer) {
+        fs.writeFileSync(tmpFilePath, file.buffer);
       }
-
-      console.log("Starting transcription...");
 
       // Load the user's categories (default + custom) so the AI classifies the
       // transaction into one of them instead of a hardcoded list.
@@ -90,10 +94,19 @@ export class VoiceController {
       );
 
       const processVoice = async () => {
-        const transcriptionResult =
-          await this.voiceService.transcribeAudio(tmpFilePath);
+        let text = directTranscript;
 
-        if (!transcriptionResult.text.trim()) {
+        if (!text) {
+          if (!this.voiceService.validateAudioFile(tmpFilePath)) {
+            throw new AppError("Invalid audio file format or size", 400);
+          }
+          console.log("Starting transcription...");
+          const transcriptionResult =
+            await this.voiceService.transcribeAudio(tmpFilePath);
+          text = transcriptionResult.text;
+        }
+
+        if (!text.trim()) {
           return {
             success: false,
             message: "Voice processed successfully",
@@ -103,11 +116,11 @@ export class VoiceController {
           };
         }
 
-        console.log(`Transcription: ${transcriptionResult.text}`);
+        console.log(`Transcription: ${text}`);
 
         console.log("Starting classification...");
         const transactionData = await this.voiceService.classifyTransaction(
-          transcriptionResult.text,
+          text,
           userCategories,
         );
 
@@ -124,7 +137,7 @@ export class VoiceController {
           type: transactionData.type,
           currency: transactionData.currency,
           voiceUrl: tmpFilePath, // Temporary file path on server
-          transcription: transcriptionResult.text,
+          transcription: text,
           confidence: transactionData.confidence,
         };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   CalendarClock,
   Plus,
@@ -54,66 +54,25 @@ export interface RecurringPayment {
   notes?: string;
 }
 
-const INITIAL_RECURRING: RecurringPayment[] = [
-  {
-    id: "rec-1",
-    name: "Cloud Server & Hosting",
-    amount: 45.0,
-    currency: "USD",
-    frequency: "MONTHLY",
-    category: "Utilities",
-    nextDate: "2026-11-01",
-    accountName: "Travel Credit Card",
-    status: "ACTIVE",
-    reminderDays: 3,
-    notes: "Production API cluster and database automated backup snapshots hosted on high-availability cloud infrastructure.",
-  },
-  {
-    id: "rec-2",
-    name: "Fiber Internet Subscription",
-    amount: 60.0,
-    currency: "USD",
-    frequency: "MONTHLY",
-    category: "Utilities",
-    nextDate: "2026-10-28",
-    accountName: "Primary Checking",
-    status: "ACTIVE",
-    reminderDays: 2,
-    notes: "High-speed 1Gbps symmetrical optical fiber internet with unlimited data transfer, static IP, and Wi-Fi 6 gateway lease.",
-  },
-  {
-    id: "rec-3",
-    name: "Software Tools & AI Pro",
-    amount: 30.0,
-    currency: "USD",
-    frequency: "MONTHLY",
-    category: "Productivity",
-    nextDate: "2026-11-10",
-    accountName: "Travel Credit Card",
-    status: "ACTIVE",
-    reminderDays: 1,
-    notes: "Monthly enterprise AI copilot subscription and productivity team workspace with priority inference quotas.",
-  },
-  {
-    id: "rec-4",
-    name: "Gym & Wellness Pass",
-    amount: 55.0,
-    currency: "USD",
-    frequency: "MONTHLY",
-    category: "Healthcare",
-    nextDate: "2026-11-05",
-    accountName: "Primary Checking",
-    status: "PAUSED",
-    reminderDays: 3,
-    notes: "All-access tier fitness membership including recovery spa, heated lap pool, and personal training locker facilities.",
-  },
-];
+const INITIAL_RECURRING: RecurringPayment[] = [];
 
 export const RecurringPage: React.FC = () => {
+  const user = useTypedSelector((state) => state.auth.user);
+  const baseCurrency = (user as any)?.baseCurrency || (user as any)?.currency || "USD";
+
   const [items, setItems] = useState<RecurringPayment[]>(() => {
     const saved = localStorage.getItem("monetra_recurring_payments");
     return saved ? JSON.parse(saved) : INITIAL_RECURRING;
   });
+
+  // Listen for reset events from Account Settings
+  useEffect(() => {
+    const handleReset = () => {
+      setItems([]);
+    };
+    window.addEventListener("monetra_data_reset", handleReset);
+    return () => window.removeEventListener("monetra_data_reset", handleReset);
+  }, []);
 
   const [viewMode, setViewMode] = useState<"slider" | "grid">("slider");
   const [filterTab, setFilterTab] = useState<"ALL" | "ACTIVE" | "PAUSED">("ALL");
@@ -130,9 +89,6 @@ export const RecurringPage: React.FC = () => {
   const [nextDate, setNextDate] = useState("");
   const [accountName, setAccountName] = useState("Primary Checking");
   const [notes, setNotes] = useState("");
-
-  const user = useTypedSelector((state) => state.auth.user);
-  const baseCurrency = (user as any)?.currency || "USD";
 
   const saveItems = (newItems: RecurringPayment[]) => {
     setItems(newItems);
@@ -386,7 +342,23 @@ export const RecurringPage: React.FC = () => {
             </div>
           </div>
 
-          {displayedItems.length === 0 ? (
+          {items.length === 0 ? (
+            <Card className="border border-dashed border-border/70 bg-card/50 rounded-2xl p-10 text-center max-w-lg mx-auto my-4 shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5">
+                <CalendarClock className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">No recurring bills or subscriptions</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
+                Track your active subscriptions, monthly utility bills, memberships, and automated debits in one synced view.
+              </p>
+              <Button
+                onClick={() => setIsAddOpen(true)}
+                className="mt-4 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Recurring Bill
+              </Button>
+            </Card>
+          ) : displayedItems.length === 0 ? (
             <Card className="border border-dashed border-border/80 bg-muted/20 rounded-2xl p-10 text-center">
               <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3">
                 <CalendarClock className="w-6 h-6" />
