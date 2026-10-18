@@ -1,5 +1,11 @@
 # 💎 Monetra — AI Smart Financial & Expense Intelligence Platform
 
+[![Vercel Web App](https://img.shields.io/badge/Vercel%20App-monetra--web--two.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://monetra-web-two.vercel.app/)
+[![API Status](https://img.shields.io/badge/API-Online-10b981?style=for-the-badge&logo=fastapi)](https://server-olive-six-68.vercel.app/health)
+
+> 🌐 **Live Web App on Vercel:** [https://monetra-web-two.vercel.app/](https://monetra-web-two.vercel.app/)  
+> 🔗 **Production Backend API:** [https://server-olive-six-68.vercel.app/api](https://server-olive-six-68.vercel.app/api)
+
 **Monetra** is a personal expense management and financial intelligence web application. It automates expense tracking with **AI Voice Transcription**, **AI Receipt Vision Scanning**, **Multi-Currency Conversion**, **Interactive Savings Goals**, and **Complete Data Backup & Restore**.
 
 ---
@@ -113,3 +119,21 @@ npm run dev
 - **Frontend**: React 19, Vite, Tailwind CSS, Redux Toolkit Query, Lucide Icons, Recharts
 - **Backend**: NestJS 10, Drizzle ORM, Express, Passport JWT
 - **Database**: PostgreSQL with Drizzle ORM (automated local fallback mode when offline)
+
+---
+
+## ☕ Support Independent Development
+
+If Monetra helps you manage your finances, support independent development via **USDT (TRC20)**:
+
+- **Network:** USDT (TRC20) — Tron Blockchain
+- **USDT (TRC20) Address:** `TAneq9f7QbigXjqANj6UxUrW83hm1vGCSV`
+
+> 💡 Please send only USDT via the TRC-20 network to this address. Contributions help keep the project open and actively maintained.
+
+---
+
+## 👨‍💻 Developed By
+
+Developed with ❤️ by **Subhan Kashif**.
+

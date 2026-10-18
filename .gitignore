@@ -21,6 +21,8 @@ out/
 .drizzle/
 *.dev-data.json
 .dev-data.json
+.neon
+.neon/
 
 
 # Logs
