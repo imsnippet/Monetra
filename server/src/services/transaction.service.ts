@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Env } from "../config/env.config";
 import { genAI, genAIModel } from "../config/google-ai.config";
 import { openai, openAIModel } from "../config/openai.config";
@@ -631,25 +632,35 @@ export const scanReceiptService = async (
         max_tokens: 500,
       });
       content = result.choices[0]?.message?.content;
-    } else if (Env.GEMINI_API_KEY && file.buffer) {
-      const response = await genAI.models.generateContent({
-        model: genAIModel,
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: receiptPrompt(categories) },
-              {
-                inlineData: {
-                  mimeType: file.mimetype || "image/jpeg",
-                  data: file.buffer.toString("base64"),
+    } else if (Env.GEMINI_API_KEY) {
+      let imageBase64: string | null = null;
+      if (file.buffer) {
+        imageBase64 = file.buffer.toString("base64");
+      } else if (file.path && file.path.startsWith("http")) {
+        const imgRes = await axios.get(file.path, { responseType: "arraybuffer" });
+        imageBase64 = Buffer.from(imgRes.data).toString("base64");
+      }
+
+      if (imageBase64) {
+        const response = await genAI.models.generateContent({
+          model: genAIModel,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: receiptPrompt(categories) },
+                {
+                  inlineData: {
+                    mimeType: file.mimetype || "image/jpeg",
+                    data: imageBase64,
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      });
-      content = response.text?.replace(/```json\n?|\n?```/g, "").trim();
+              ],
+            },
+          ],
+        });
+        content = response.text?.replace(/```json\n?|\n?```/g, "").trim();
+      }
     }
 
     if (!content) {
